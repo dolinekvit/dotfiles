@@ -1,0 +1,35 @@
+# Ghostty configuration
+# 大波 — matched to the Neovim kanagawa setup.
+
+# Font: JetBrainsMono Nerd Font includes all the file-type / git icons that
+# neo-tree and lualine use. The "Mono" variant keeps icons single-width.
+font-family = JetBrainsMono Nerd Font Mono
+font-size = 14
+
+# Colours: the same kanagawa "wave" palette Neovim uses, so the terminal
+# background matches the editor with no seam at the edges.
+theme = Kanagawa Wave
+
+# App icon: jasonlong's custom kanagawa-wave dock icon (silver ghost over a
+# sumi-ink screen with the kanagawa accent bar).
+macos-icon = custom
+macos-custom-icon = ~/.config/ghostty/kanagawa-wave.icns
+
+# A little breathing room around the text.
+window-padding-x = 10
+window-padding-y = 8
+window-padding-balance = true
+
+# Cursor
+cursor-style = block
+cursor-style-blink = false
+
+# macOS: let Option work as Alt for keybindings.
+macos-option-as-alt = true
+
+# Slightly translucent background (set to 1 for fully opaque).
+background-opacity = 0.98
+
+# Keybindings
+# cmd+shift+f toggles fullscreen (overrides Ghostty's default end_search).
+keybind = cmd+shift+f=toggle_fullscreen
