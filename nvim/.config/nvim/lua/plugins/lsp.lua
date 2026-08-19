@@ -31,10 +31,8 @@ return {
           map("<leader>d", vim.diagnostic.open_float, "Line diagnostics")
           map("]d", vim.diagnostic.goto_next, "Next diagnostic")
           map("[d", vim.diagnostic.goto_prev, "Previous diagnostic")
-          map("<leader>cf", function() vim.lsp.buf.format({ async = true }) end, "Format buffer")
-          -- Visual-mode: format just the selected range.
-          vim.keymap.set("v", "<leader>cf", function() vim.lsp.buf.format({ async = true }) end,
-            { buffer = event.buf, desc = "LSP: Format selection" })
+          -- Formatting is handled by conform.nvim (<leader>cf), which falls
+          -- back to this LSP's formatter for filetypes Prettier doesn't cover.
 
           -- Turn on inlay hints (param names, inferred types) where supported.
           local client = vim.lsp.get_client_by_id(event.data.client_id)

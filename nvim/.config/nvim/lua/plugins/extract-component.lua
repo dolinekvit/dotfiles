@@ -150,6 +150,77 @@ local function to_pascal(input)
   return name
 end
 
+-- The new file's extension follows the current buffer (.tsx / .jsx).
+local function buf_ext(buf)
+  return vim.bo[buf].filetype == "javascriptreact" and ".jsx" or ".tsx"
+end
+
+-- Turn the user's raw input into a safe file basename, PRESERVING their casing
+-- (so "test-ye" stays "test-ye", not "TestYe"). Strips a trailing .tsx/.jsx
+-- extension and any path segments; returns nil if nothing usable remains.
+local function sanitize_basename(input)
+  local s = vim.trim(input or "")
+  s = s:gsub("%.[jt]sx?$", "") -- drop a typed extension
+  s = s:gsub(".*/", "")        -- keep only the last path segment
+  s = s:gsub("%s+", "-")       -- spaces -> dashes
+  s = s:gsub("[^%w%-_.]", "")  -- drop filesystem-unsafe chars
+  if s == "" then
+    return nil
+  end
+  return s
+end
+
+-- Collapse "." and ".." segments in a path (logical, no symlink resolution).
+local function normalize_path(path)
+  local abs = path:sub(1, 1) == "/"
+  local parts = {}
+  for seg in path:gmatch("[^/]+") do
+    if seg == "." then
+      -- skip
+    elseif seg == ".." then
+      if #parts > 0 and parts[#parts] ~= ".." then
+        table.remove(parts)
+      elseif not abs then
+        parts[#parts + 1] = ".."
+      end
+    else
+      parts[#parts + 1] = seg
+    end
+  end
+  return (abs and "/" or "") .. table.concat(parts, "/")
+end
+
+-- Relative import specifier from `from_dir` to `to_path` (both absolute).
+-- e.g. (/a/b/src/Ctrl, /a/b/src/components/x.tsx) -> "../components/x.tsx".
+local function relative_specifier(from_dir, to_path)
+  local fp, tp = {}, {}
+  for s in from_dir:gmatch("[^/]+") do
+    fp[#fp + 1] = s
+  end
+  for s in to_path:gmatch("[^/]+") do
+    tp[#tp + 1] = s
+  end
+  local i = 1
+  while i <= #fp and i <= #tp and fp[i] == tp[i] do
+    i = i + 1
+  end
+  local rel = {}
+  for _ = i, #fp do
+    rel[#rel + 1] = ".."
+  end
+  for j = i, #tp do
+    rel[#rel + 1] = tp[j]
+  end
+  local spec = table.concat(rel, "/")
+  if spec == "" then
+    spec = "."
+  end
+  if not spec:match("^%.") then
+    spec = "./" .. spec
+  end
+  return spec
+end
+
 -- Cheap "is this JSX?" guard. Accepts a single/multi element (`<...>`) or a JSX
 -- expression container (`{...}` containing a `<`). Anything else is rejected so
 -- we never corrupt the buffer on a non-JSX selection.
@@ -681,13 +752,23 @@ local function find_last_import_row(buf)
   return last
 end
 
--- Insert `import Name from "./Name";` after the last import (idempotent).
-local function insert_import(buf, name)
-  local importline = string.format('import %s from "./%s";', name, name)
+-- Insert `import Name from "<spec>";` after the last import. Idempotent on the
+-- imported IDENTIFIER, so re-running or a name clash never duplicates it.
+local function insert_import(buf, name, spec)
+  spec = spec or ("./" .. name)
+  local importline = string.format('import %s from "%s";', name, spec)
+  local pesc = vim.pesc(name)
+  local default_pat = "^%s*import%s+" .. pesc .. "[%s,]" -- import Foo ... / import Foo, {...}
+  local word = "%f[%w_]" .. pesc .. "%f[^%w_]"           -- the identifier as a whole word
   local lines = api.nvim_buf_get_lines(buf, 0, -1, false)
   for _, l in ipairs(lines) do
-    if l == importline or l:match('from%s+["\']%./' .. name .. '["\']') then
-      return -- already imported
+    -- Idempotent on the imported IDENTIFIER across default, named, and type
+    -- imports (single-line), so a name clash never adds a duplicate import.
+    if l == importline
+      or l:match(default_pat)
+      or (l:match("^%s*import[%s{]") and l:match("from%s+[\"']") and l:match(word))
+    then
+      return -- this identifier is already imported
     end
   end
   local last = find_last_import_row(buf)
@@ -709,15 +790,15 @@ local function replace_with_callsite(buf, ctx, callsite)
   api.nvim_buf_set_text(buf, ctx.srow0, replace_sc, ctx.erow0, ctx.ec0, { callsite })
 end
 
-local function do_new_file(buf, ctx, name)
-  local file = api.nvim_buf_get_name(buf)
-  if file == "" then
-    return notify("Current buffer has no file on disk; cannot create a sibling file.", vim.log.levels.WARN)
+-- Shared writer: create target_abs (making parent dirs), replace the selection
+-- with the call site, and add the import using `spec`.
+local function write_component_file(buf, ctx, name, target_abs, spec)
+  if vim.fn.filereadable(target_abs) == 1 then
+    return notify("File already exists: " .. target_abs, vim.log.levels.ERROR)
   end
-  local dir = vim.fn.fnamemodify(file, ":h")
-  local path = dir .. "/" .. name .. ".tsx"
-  if vim.fn.filereadable(path) == 1 then
-    return notify("File already exists: " .. path, vim.log.levels.ERROR)
+  local parent = vim.fn.fnamemodify(target_abs, ":h")
+  if vim.fn.isdirectory(parent) == 0 and vim.fn.mkdir(parent, "p") == 0 then
+    return notify("Could not create directory: " .. parent, vim.log.levels.ERROR)
   end
 
   local comp = build_component(name, ctx.props, ctx.sel_lines, ctx.base_indent, {
@@ -727,14 +808,47 @@ local function do_new_file(buf, ctx, name)
     copy_imports = collect_copy_imports(ctx.info),
   })
 
-  local ok, err = pcall(vim.fn.writefile, comp, path)
+  local ok, err = pcall(vim.fn.writefile, comp, target_abs)
   if not ok then
-    return notify("Failed to write " .. path .. ": " .. tostring(err), vim.log.levels.ERROR)
+    return notify("Failed to write " .. target_abs .. ": " .. tostring(err), vim.log.levels.ERROR)
   end
 
   replace_with_callsite(buf, ctx, build_callsite(name, ctx.props))
-  insert_import(buf, name) -- import line is above the edit, so recompute is safe
-  notify(string.format("Created %s and inserted <%s />", path, name))
+  insert_import(buf, name, spec) -- import line is above the edit, so it's safe
+  notify(string.format("Created %s and inserted <%s />", vim.fn.fnamemodify(target_abs, ":~:."), name))
+end
+
+-- Sibling file in the same directory, named exactly as the user typed
+-- (component identifier stays PascalCase; the FILE keeps their casing).
+local function do_new_file(buf, ctx, name, file_base)
+  local file = api.nvim_buf_get_name(buf)
+  if file == "" then
+    return notify("Current buffer has no file on disk; cannot create a sibling file.", vim.log.levels.WARN)
+  end
+  local dir = vim.fn.fnamemodify(file, ":h")
+  local target = dir .. "/" .. file_base .. buf_ext(buf)
+  write_component_file(buf, ctx, name, target, "./" .. file_base)
+end
+
+-- Arbitrary path, interpreted relative to the CURRENT file (absolute allowed).
+-- e.g. "../components/test-ye.tsx". The import specifier is derived from the
+-- real target location, so it's always correct even for deep/absolute paths.
+local function do_custom_path(buf, ctx, name, typed)
+  local file = api.nvim_buf_get_name(buf)
+  if file == "" then
+    return notify("Save this file first so relative paths can be resolved.", vim.log.levels.WARN)
+  end
+  local dir = normalize_path(vim.fn.fnamemodify(file, ":h"))
+  if not typed:match("%.[jt]sx?$") then
+    typed = typed .. buf_ext(buf) -- add the buffer's extension if none given
+  end
+  local target = typed
+  if target:sub(1, 1) ~= "/" then
+    target = dir .. "/" .. target -- relative to the current file's directory
+  end
+  target = normalize_path(target)
+  local spec = relative_specifier(dir, target):gsub("%.[jt]sx?$", "")
+  write_component_file(buf, ctx, name, target, spec)
 end
 
 local function do_inline(buf, ctx, name)
@@ -830,24 +944,41 @@ function M.extract(source)
     if not name then
       return notify("Invalid name: must be PascalCase and start with a letter.", vim.log.levels.WARN)
     end
+    -- Filename keeps the user's casing ("test-ye" -> test-ye.tsx); the component
+    -- identifier is the PascalCase form ("TestYe"), as JSX requires.
+    local file_base = sanitize_basename(input) or name
+    local ext = buf_ext(buf)
+
+    -- Wrap each mutation in pcall so a surprise never leaves a half-edit.
+    local function run(fn)
+      local ok, err = pcall(fn)
+      if not ok then
+        notify("Extraction failed: " .. tostring(err), vim.log.levels.ERROR)
+      end
+    end
 
     vim.ui.select({
-      "New sibling file: " .. name .. ".tsx",
+      "New sibling file: " .. file_base .. ext,
       "Inline above the current component",
+      "Custom path…",
     }, { prompt = "Place extracted component:" }, function(choice, idx)
       if not choice then
         return -- cancelled
       end
-      -- Wrap the mutation in pcall so a surprise never leaves a half-edit.
-      local ok, err = pcall(function()
-        if idx == 1 then
-          do_new_file(buf, ctx, name)
-        else
-          do_inline(buf, ctx, name)
-        end
-      end)
-      if not ok then
-        notify("Extraction failed: " .. tostring(err), vim.log.levels.ERROR)
+      if idx == 1 then
+        run(function() do_new_file(buf, ctx, name, file_base) end)
+      elseif idx == 2 then
+        run(function() do_inline(buf, ctx, name) end)
+      else
+        vim.ui.input({
+          prompt = "Path (relative to this file): ",
+          default = "../" .. file_base .. ext,
+        }, function(p)
+          if not p or vim.trim(p) == "" then
+            return -- cancelled
+          end
+          run(function() do_custom_path(buf, ctx, name, vim.trim(p)) end)
+        end)
       end
     end)
   end)
