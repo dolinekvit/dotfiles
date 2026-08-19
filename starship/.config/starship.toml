@@ -2,12 +2,53 @@
 
 add_newline = true
 
+format = """
+$directory\
+$git_branch\
+$git_status\
+$nodejs\
+$rust\
+$python\
+$golang\
+$cmd_duration\
+$line_break\
+$character"""
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+style = "blue bold"
+
+[git_metrics]
+disabled = false
+added_style = "bold green"
+deleted_style = "bold red"
+format = "[+$added]($added_style)|[-$deleted]($deleted_style)"
+only_nonzero_diffs = true
+
+[git_branch]
+symbol = " "
+style = "purple bold"
+
+[git_status]
+style = "red bold"
+
+[cmd_duration]
+min_time = 500
+format = "took [$duration]($style) "
+style = "bold yellow"
+
 [character]
-success_symbol = '[➜](bold green)'
+success_symbol = "[❯](green bold)"
+error_symbol = "[❯](red bold)"
 
-[package]
-disabled = true
+[nodejs]
+symbol = " "
+[rust]
+symbol = " "
+[python]
+symbol = " "
+[golang]
+symbol = " "
 
-[sudo]
-style = 'bold red'
-symbol = 'SUDO '
+
