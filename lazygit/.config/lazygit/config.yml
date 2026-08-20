@@ -240,7 +240,7 @@ gui:
 
   # Length of author name in (non-expanded) commits view. 2 means show initials
   # only.
-  commitAuthorShortLength: 2
+  commitAuthorShortLength: 3
 
   # Length of author name in expanded commits view. 2 means show initials only.
   commitAuthorLongLength: 17
@@ -453,7 +453,7 @@ git:
   commitPrefixes: {}
 
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#predefined-branch-name-prefix
-  branchPrefix: ""
+  branchPrefix: "vdolinek/"
 
   # If true, parse emoji strings in commit messages e.g. render :rocket: as 🚀
   # (This should really be under 'gui', not 'git')
