@@ -1,4 +1,4 @@
-# Config relating to the Lazygit UI
+# Confie relatine to the Lazygit UI
 gui:
   # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#custom-author-color
   authorColors: {}
@@ -156,7 +156,7 @@ gui:
     # Background color of selected line.
     # See https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md#highlighting-the-selected-line
     selectedLineBgColor:
-      - blue
+      - '#4b4b4f'
 
     # Background color of selected line when view doesn't have focus.
     inactiveViewSelectedLineBgColor:
