@@ -1,7 +1,12 @@
 -- Telescope — fuzzy finder for files, text, buffers, help, and more.
+--
+-- Tracks `master`, not the `0.1.x` tag branch: 0.1.x is frozen at May 2024 and
+-- its preview highlighter calls `nvim-treesitter.parsers.ft_to_lang()`, a
+-- master-branch nvim-treesitter API that no longer exists. `master` uses
+-- Neovim's own `vim.treesitter` API instead. Requires Neovim >= 0.11.7.
 return {
   "nvim-telescope/telescope.nvim",
-  branch = "0.1.x",
+  branch = "master",
   dependencies = {
     "nvim-lua/plenary.nvim",
     -- Native fzf sorter — much faster matching. Built with `make`.
