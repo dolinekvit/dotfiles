@@ -54,6 +54,27 @@ opt.timeoutlen = 400
 opt.list = true
 opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
 
+-- Docker Compose files are plain `yaml` to Neovim's built-in detection, but
+-- every compose language server keys off the `yaml.docker-compose` filetype.
+-- Mapping it here (rather than in the LSP plugin spec) guarantees it is
+-- registered before the first buffer is read. See lua/plugins/lsp.lua for the
+-- yamlls config that consumes it.
+vim.filetype.add({
+  filename = {
+    ["compose.yaml"] = "yaml.docker-compose",
+    ["compose.yml"] = "yaml.docker-compose",
+    ["docker-compose.yaml"] = "yaml.docker-compose",
+    ["docker-compose.yml"] = "yaml.docker-compose",
+  },
+  -- Patterns are matched against the full path and are implicitly anchored,
+  -- hence the leading `.*/`. These cover variants: compose.override.yaml,
+  -- docker-compose.prod.yml, and so on.
+  pattern = {
+    [".*/compose%.[%w_.-]+%.ya?ml"] = "yaml.docker-compose",
+    [".*/docker%-compose%.[%w_.-]+%.ya?ml"] = "yaml.docker-compose",
+  },
+})
+
 -- Prose mode: soft-wrap, spell-check, and visual-line movement for text
 -- filetypes (markdown, plain text, git commit messages).
 vim.api.nvim_create_autocmd("FileType", {
