@@ -15,6 +15,9 @@ return {
       { "williamboman/mason.nvim", config = true },
       "williamboman/mason-lspconfig.nvim",
       "hrsh7th/cmp-nvim-lsp",
+      -- Bundles the SchemaStore.org catalogue so yamlls/jsonls get completion
+      -- and validation for compose, GitHub Actions, tsconfig, etc.
+      "b0o/SchemaStore.nvim",
     },
     config = function()
       -- Keymaps + inlay hints, set only where a language server actually attaches.
@@ -101,6 +104,29 @@ return {
           },
         },
       })
+
+      -- yamlls: YAML completion/validation driven by the SchemaStore catalogue.
+      -- This is what gives Docker Compose intellisense (service keys, `build`
+      -- vs `image`, port syntax) — it attaches to the `yaml.docker-compose`
+      -- filetype mapped in lua/config/options.lua. It also covers every other
+      -- schema-backed YAML: GitHub Actions workflows, Kubernetes manifests, etc.
+      vim.lsp.config("yamlls", {
+        settings = {
+          redhat = { telemetry = { enabled = false } },
+          yaml = {
+            -- The server ships its own schema store; disable it so the
+            -- SchemaStore.nvim catalogue below is the single source of truth.
+            schemaStore = { enable = false, url = "" },
+            schemas = require("schemastore").yaml.schemas(),
+            format = { enable = true },
+            validate = true,
+            -- Compose files nest deeply; keeping the parent key in view while
+            -- scrolling a long service definition is worth the extra column.
+            keyOrdering = false,
+          },
+        },
+      })
+
       -- eslint + emmet_language_server need no override: the "*" capabilities and
       -- their built-in configs (flat-config + JSX filetype detection) are enough.
 
@@ -109,6 +135,8 @@ return {
         -- emmet_language_server = JSX emmet; intelephense = PHP; lua_ls = Lua.
         ensure_installed = {
           "lua_ls", "intelephense", "vtsls", "eslint", "emmet_language_server",
+          -- yamlls = YAML incl. Docker Compose (see the vim.lsp.config above).
+          "yamlls",
           -- tailwindcss only attaches in projects that have a Tailwind config,
           -- so it's harmless in non-Tailwind projects.
           "tailwindcss",
