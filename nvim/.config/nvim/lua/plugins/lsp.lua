@@ -120,8 +120,8 @@ return {
             schemas = require("schemastore").yaml.schemas(),
             format = { enable = true },
             validate = true,
-            -- Compose files nest deeply; keeping the parent key in view while
-            -- scrolling a long service definition is worth the extra column.
+            -- Don't demand alphabetically sorted keys — compose files read
+            -- better grouped logically (image, ports, volumes, depends_on).
             keyOrdering = false,
           },
         },
