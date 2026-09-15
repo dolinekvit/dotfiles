@@ -75,6 +75,16 @@ vim.filetype.add({
   },
 })
 
+-- Neovim detects the exact filename `Jenkinsfile` as groovy, but not the
+-- variants real repos use. Patterns are matched against the full path and are
+-- implicitly anchored, hence the leading `.*/`.
+vim.filetype.add({
+  pattern = {
+    [".*/Jenkinsfile%.[%w_.-]+"] = "groovy", -- Jenkinsfile.release, Jenkinsfile.dev
+    [".*%.Jenkinsfile"] = "groovy",          -- build.Jenkinsfile, deploy.Jenkinsfile
+  },
+})
+
 -- Prose mode: soft-wrap, spell-check, and visual-line movement for text
 -- filetypes (markdown, plain text, git commit messages).
 vim.api.nvim_create_autocmd("FileType", {
