@@ -37,6 +37,17 @@ return {
       yaml = { "prettierd", "prettier", stop_after_first = true },
       markdown = { "prettierd", "prettier", stop_after_first = true },
       graphql = { "prettierd", "prettier", stop_after_first = true },
+      -- Prettier has no Groovy parser; npm-groovy-lint --fix is the only
+      -- formatter that understands Jenkinsfiles. It rewrites the file in
+      -- place rather than round-tripping stdin, which conform handles.
+      groovy = { "npm-groovy-lint" },
+    },
+    formatters = {
+      -- Match the ruleset nvim-lint uses, so formatting never "fixes" a file
+      -- into something the linter then complains about.
+      ["npm-groovy-lint"] = {
+        prepend_args = { "--config", "recommended-jenkinsfile", "--no-insight" },
+      },
     },
   },
 }

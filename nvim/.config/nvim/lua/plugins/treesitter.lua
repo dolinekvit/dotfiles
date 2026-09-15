@@ -31,6 +31,7 @@ return {
       "lua", "vim", "vimdoc", "bash", "json", "yaml", "toml",
       "markdown", "markdown_inline", "python", "javascript",
       "typescript", "tsx", "html", "css", "gitcommit",
+      "groovy", -- Jenkinsfiles and Gradle build scripts
     })
 
     -- Replaces master's `highlight`, `indent` and `auto_install` options.

@@ -162,7 +162,21 @@ return {
           "mlaursen/vim-react-snippets",
         },
         config = function()
+          -- Without region_check_events, LuaSnip keeps a finished snippet as
+          -- the "current" session forever, so a later <Tab> anywhere in its
+          -- old line range jumps the cursor back into it. This exits the
+          -- session as soon as the cursor leaves the snippet's region.
+          require("luasnip").setup({
+            region_check_events = "CursorMoved",
+          })
+
           require("luasnip.loaders.from_vscode").lazy_load()
+          -- Hand-written snippets living in <config>/snippets/<filetype>.lua.
+          -- Currently groovy (Jenkins declarative pipelines), which
+          -- friendly-snippets doesn't cover at all.
+          require("luasnip.loaders.from_lua").lazy_load({
+            paths = { vim.fn.stdpath("config") .. "/snippets" },
+          })
           require("vim-react-snippets").setup()
         end,
       },
@@ -182,14 +196,21 @@ return {
           ["<C-l>"] = cmp.mapping.complete(),
           ["<C-e>"] = cmp.mapping.abort(),
           ["<CR>"] = cmp.mapping.confirm({ select = true }),
+          -- NOTE: the *locally* variants are load-bearing. LuaSnip keeps
+          -- pointing at the last snippet you expanded until something clears
+          -- it, and plain `expand_or_jumpable()`/`jumpable()` only ask "does
+          -- that snippet have another tabstop?" — never "is the cursor still
+          -- inside it?". With those, a <Tab> anywhere else in the file yanks
+          -- the cursor back to a snippet you finished with ages ago.
+          -- `expand_or_locally_jumpable()` adds the missing in_snippet() check.
           ["<Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then cmp.select_next_item()
-            elseif luasnip.expand_or_jumpable() then luasnip.expand_or_jump()
+            elseif luasnip.expand_or_locally_jumpable() then luasnip.expand_or_jump()
             else fallback() end
           end, { "i", "s" }),
           ["<S-Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then cmp.select_prev_item()
-            elseif luasnip.jumpable(-1) then luasnip.jump(-1)
+            elseif luasnip.locally_jumpable(-1) then luasnip.jump(-1)
             else fallback() end
           end, { "i", "s" }),
         }),
