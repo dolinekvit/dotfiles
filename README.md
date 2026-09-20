@@ -10,6 +10,8 @@ dotfiles/
 │   └── .config/ghostty/config     ->  ~/.config/ghostty/config
 ├── lazygit/
 │   └── .config/lazygit/config.yml ->  ~/.config/lazygit/config.yml
+├── lazydocker/
+│   └── .config/lazydocker/config.yml ->  ~/.config/lazydocker/config.yml
 ├── nvim/
 │   └── .config/nvim/              ->  ~/.config/nvim/
 ├── starship/
