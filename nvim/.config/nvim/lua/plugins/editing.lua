@@ -26,13 +26,6 @@ return {
     config = true,
   },
 
-  -- gcc to comment a line, gc in visual mode for a selection.
-  {
-    "numToStr/Comment.nvim",
-    event = { "BufReadPost", "BufNewFile" },
-    config = true,
-  },
-
   -- Indentation guides.
   {
     "lukas-reineke/indent-blankline.nvim",
