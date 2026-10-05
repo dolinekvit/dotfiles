@@ -73,7 +73,7 @@ return {
             preferences = {
               includeCompletionsForModuleExports = true, -- auto-import useState, etc.
               includeCompletionsForImportStatements = true,
-              importModuleSpecifier = "shortest",
+              importModuleSpecifier = "non-relative",
               quoteStyle = "single",
             },
             inlayHints = {
@@ -91,7 +91,7 @@ return {
             preferences = {
               includeCompletionsForModuleExports = true,
               includeCompletionsForImportStatements = true,
-              importModuleSpecifier = "shortest",
+              importModuleSpecifier = "non-relative",
             },
             inlayHints = {
               enumMemberValues = { enabled = true },
@@ -195,7 +195,7 @@ return {
           -- as you type, so this is only for triggering it manually.
           ["<C-l>"] = cmp.mapping.complete(),
           ["<C-e>"] = cmp.mapping.abort(),
-          ["<CR>"] = cmp.mapping.confirm({ select = true }),
+          ["<CR>"] = cmp.mapping.confirm({ select = false }),
           -- NOTE: the *locally* variants are load-bearing. LuaSnip keeps
           -- pointing at the last snippet you expanded until something clears
           -- it, and plain `expand_or_jumpable()`/`jumpable()` only ask "does

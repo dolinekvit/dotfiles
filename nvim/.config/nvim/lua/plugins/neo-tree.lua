@@ -19,6 +19,7 @@ return {
       filtered_items = {
         hide_dotfiles = false, -- show dotfiles (you edit configs)
         hide_gitignored = true,
+        always_show_by_pattern = { ".env*" },
       },
     },
     window = {

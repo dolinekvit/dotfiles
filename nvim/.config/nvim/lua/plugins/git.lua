@@ -21,6 +21,7 @@ return {
       map("n", "<leader>hs", gs.stage_hunk, "Stage hunk")
       map("n", "<leader>hr", gs.reset_hunk, "Reset hunk")
       map("n", "<leader>hb", function() gs.blame_line({ full = true }) end, "Blame line")
+      map("n", "<leader>gb", function() gs.toggle_current_line_blame() end, "Toggle inline blame")
     end,
   },
 }

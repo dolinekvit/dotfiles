@@ -30,8 +30,21 @@ return {
         selection_caret = "  ",
         path_display = { "truncate" },
         sorting_strategy = "ascending",
+        vimgrep_arguments = {
+          "rg", "--color=never", "--no-heading", "--with-filename",
+          "--line-number", "--column", "--smart-case",
+          "--hidden", "--glob", "!**/.git/*",
+        },
         layout_config = {
           horizontal = { prompt_position = "top", preview_width = 0.55 },
+        },
+      },
+      pickers = {
+        find_files = {
+          find_command = {
+            "rg", "--files", "--hidden", "--no-ignore",
+            "--glob", "!**/.git/*", "--glob", "!**/node_modules/*",
+          },
         },
       },
     })
