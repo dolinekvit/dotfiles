@@ -14,6 +14,8 @@ dotfiles/
 │   └── .config/lazydocker/config.yml ->  ~/.config/lazydocker/config.yml
 ├── nvim/
 │   └── .config/nvim/              ->  ~/.config/nvim/
+├── prettier/
+│   └── .prettierrc.json           ->  ~/.prettierrc.json
 ├── starship/
 │   └── .config/starship.toml      ->  ~/.config/starship.toml
 └── tmux/
