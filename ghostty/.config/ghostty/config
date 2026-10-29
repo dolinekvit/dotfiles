@@ -1,19 +1,14 @@
 # Ghostty configuration
-# 大波 — matched to the Neovim kanagawa setup.
+# 静 — matched to the Neovim vague setup.
 
-# Font: JetBrainsMono Nerd Font includes all the file-type / git icons that
+# Font: GeistMono Nerd Font includes all the file-type / git icons that
 # neo-tree and lualine use. The "Mono" variant keeps icons single-width.
-font-family = JetBrainsMono Nerd Font Mono
+font-family = GeistMono Nerd Font Mono
 font-size = 14
 
-# Colours: the same kanagawa "wave" palette Neovim uses, so the terminal
-# background matches the editor with no seam at the edges.
-theme = Kanagawa Wave
-
-# App icon: jasonlong's custom kanagawa-wave dock icon (silver ghost over a
-# sumi-ink screen with the kanagawa accent bar).
-macos-icon = custom
-macos-custom-icon = ~/.config/ghostty/kanagawa-wave.icns
+# Colours: Ghostty's built-in vague palette, the same one Neovim uses, so the
+# terminal background matches the editor with no seam at the edges.
+theme = Vague
 
 # A little breathing room around the text.
 window-padding-x = 10
@@ -23,6 +18,7 @@ window-padding-balance = true
 # Cursor
 cursor-style = block
 cursor-style-blink = false
+custom-shader = ~/.config/ghostty/shaders/cursor-smear.glsl
 
 # macOS: let Option work as Alt for keybindings.
 macos-option-as-alt = true

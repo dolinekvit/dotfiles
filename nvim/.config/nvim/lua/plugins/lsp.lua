@@ -23,14 +23,14 @@ return {
       -- Keymaps + inlay hints, set only where a language server actually attaches.
       vim.api.nvim_create_autocmd("LspAttach", {
         callback = function(event)
-          local function map(keys, fn, desc)
-            vim.keymap.set("n", keys, fn, { buffer = event.buf, desc = "LSP: " .. desc })
+          local function map(keys, fn, desc, mode)
+            vim.keymap.set(mode or "n", keys, fn, { buffer = event.buf, desc = "LSP: " .. desc })
           end
           map("gd", vim.lsp.buf.definition, "Go to definition")
           map("gr", vim.lsp.buf.references, "References")
           map("K", vim.lsp.buf.hover, "Hover docs")
           map("<leader>rn", vim.lsp.buf.rename, "Rename symbol")
-          map("<leader>ca", vim.lsp.buf.code_action, "Code action")
+          map("<leader>ca", vim.lsp.buf.code_action, "Code action", { "n", "v" })
           map("<leader>d", vim.diagnostic.open_float, "Line diagnostics")
           map("]d", vim.diagnostic.goto_next, "Next diagnostic")
           map("[d", vim.diagnostic.goto_prev, "Previous diagnostic")

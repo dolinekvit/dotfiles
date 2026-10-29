@@ -6,7 +6,8 @@
 --
 -- Prettier reads config from the nearest .prettierrc walking up from the file,
 -- so a project's own config always wins; when none exists it falls back to the
--- global ~/.prettierrc.json (printWidth 120 + industry-standard defaults).
+-- global ~/.prettierrc.json (printWidth 100, single quotes, no semicolons), which
+-- lives in the dotfiles `prettier` stow package.
 --
 -- No format-on-save — it only runs when you press <leader>cf.
 return {

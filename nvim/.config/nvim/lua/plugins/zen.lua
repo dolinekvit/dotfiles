@@ -1,5 +1,6 @@
--- Zen mode — distraction-free, centered editing. Twilight dims everything
--- except the paragraph under the cursor for a calm, focused feel.
+-- Zen mode — distraction-free, centered reading and editing. Twilight dims
+-- everything except the paragraph under the cursor; it's off by default
+-- because that hurts skimming — toggle it with :Twilight when writing.
 return {
   {
     "folke/zen-mode.nvim",
@@ -10,7 +11,7 @@ return {
     },
     opts = {
       window = {
-        width = 90,        -- columns of centered text
+        width = 80,        -- columns of centered text; ~80 is easiest to read
         options = {
           number = false,
           relativenumber = false,
@@ -19,7 +20,7 @@ return {
         },
       },
       plugins = {
-        twilight = { enabled = true }, -- dim inactive paragraphs
+        twilight = { enabled = false }, -- :Twilight dims inactive paragraphs
         gitsigns = { enabled = false },
         options = { laststatus = 0 },  -- hide the statusline in zen
       },

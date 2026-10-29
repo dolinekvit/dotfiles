@@ -35,8 +35,10 @@ opt.backup = false
 opt.clipboard = "unnamedplus"
 
 -- UI niceties
-opt.termguicolors = true -- 24-bit colour, required by kanagawa
+opt.termguicolors = true -- 24-bit colour, required by the colorscheme
 opt.signcolumn = "yes"   -- stable gutter so text doesn't jump
+opt.fillchars = { eob = " " } -- no ~ markers below the end of a file
+opt.winborder = "rounded"     -- frame LSP hover/diagnostic popups; they share the editor bg
 opt.cursorline = true
 opt.scrolloff = 8        -- keep context above/below the cursor
 opt.sidescrolloff = 8
@@ -93,8 +95,13 @@ vim.api.nvim_create_autocmd("FileType", {
   callback = function()
     vim.opt_local.wrap = true
     vim.opt_local.linebreak = true -- wrap at word boundaries, not mid-word
-    vim.opt_local.spell = true
+    -- Not in markdown: tech docs are mostly tool names, so nearly every
+    -- squiggle is a false alarm. `:set spell` to proofread one.
+    vim.opt_local.spell = vim.bo.filetype ~= "markdown"
     vim.opt_local.spelllang = "en_us"
+    -- Line numbers help jump around code but pull the eye off prose.
+    vim.opt_local.number = false
+    vim.opt_local.relativenumber = false
     -- Move by visual lines when text is wrapped.
     vim.keymap.set("n", "j", "gj", { buffer = true })
     vim.keymap.set("n", "k", "gk", { buffer = true })

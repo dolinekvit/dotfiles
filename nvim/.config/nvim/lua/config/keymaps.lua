@@ -49,3 +49,18 @@ end, { desc = "Toggle inlay hints" })
 map("n", "<S-l>", "<cmd>bnext<CR>", { desc = "Next buffer" })
 map("n", "<S-h>", "<cmd>bprevious<CR>", { desc = "Previous buffer" })
 map("n", "<leader>bd", "<cmd>bdelete<CR>", { desc = "Delete buffer" })
+
+map("n", "<leader>gw", function()
+  local worktrees = vim.fn.systemlist({ "git", "worktree", "list" })
+
+  if vim.v.shell_error ~= 0 then
+    vim.notify("Not inside a git repository", vim.log.levels.WARN)
+    return
+  end
+
+  vim.ui.select(worktrees, { prompt = "Worktree" }, function(choice)
+    if choice then
+      vim.cmd.cd(choice:match("^%S+"))
+    end
+  end)
+end, { desc = "Switch git worktree" })

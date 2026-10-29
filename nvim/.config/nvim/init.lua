@@ -1,5 +1,5 @@
 -- ~/.config/nvim/init.lua
--- 大波 — A Japanese-inspired Neovim config (kanagawa)
+-- 静 — A quiet, Japanese-inspired Neovim config (vague)
 --
 -- Load order:
 --   1. options  — core editor behaviour
